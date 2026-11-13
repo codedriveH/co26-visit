@@ -1,0 +1,8 @@
+# 개인정보나 계정 정보가 들어갈 수 있는 파일은 올리지 않습니다.
+.clasp.json
+.clasprc.json
+*.csv
+*.xlsx
+.env*
+.DS_Store
+node_modules/

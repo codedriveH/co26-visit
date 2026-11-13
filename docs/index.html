@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="theme-color" content="#1f4fa8">
+  <title>순회 방문 신청</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 로그인 화면 -->
+  <main id="loginView" class="view" hidden>
+    <div class="login-box">
+      <h1 class="login-title">순회 방문 신청</h1>
+      <p class="login-lead">이름과 휴대폰 번호를 입력해 주세요.</p>
+      <form id="loginForm" novalidate>
+        <label class="field">
+          <span class="field-label">이름</span>
+          <input id="nameInput" type="text" autocomplete="name" maxlength="30" placeholder="예: 홍길동">
+        </label>
+        <label class="field">
+          <span class="field-label">휴대폰 번호</span>
+          <input id="phoneInput" type="tel" inputmode="numeric" autocomplete="tel" maxlength="20" placeholder="예: 010-1234-5678">
+        </label>
+        <p id="loginError" class="form-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary btn-big">들어가기</button>
+      </form>
+      <p class="login-help">번호는 본인 확인에만 쓰이며 저장되지 않습니다.</p>
+    </div>
+  </main>
+
+  <!-- 신청 화면 -->
+  <div id="mainView" class="view" hidden>
+    <header class="topbar">
+      <div class="topbar-row">
+        <div class="topbar-who">
+          <strong id="userName" class="topbar-name"></strong>
+          <span id="myCount" class="topbar-count"></span>
+        </div>
+        <div class="topbar-btns">
+          <button id="refreshBtn" type="button" class="link-btn">새로 고침</button>
+          <button id="logoutBtn" type="button" class="link-btn">나가기</button>
+        </div>
+      </div>
+      <div id="deadline" class="topbar-deadline"></div>
+    </header>
+
+    <main class="content">
+      <div id="notice" class="notice" hidden></div>
+      <section id="resultBox" class="result-box" hidden></section>
+      <div id="legend" class="legend" hidden></div>
+      <div id="days"></div>
+      <p class="foot-help">바꾸실 내용이 있는데 잘 안 되면 장로에게 연락해 주세요.</p>
+    </main>
+  </div>
+
+  <!-- 추가 정보 창 -->
+  <div id="sheetBackdrop" class="backdrop" hidden>
+    <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <h2 id="sheetTitle" class="sheet-title"></h2>
+      <p id="sheetSub" class="sheet-sub"></p>
+      <div id="sheetBody"></div>
+      <div id="sheetActions" class="sheet-actions"></div>
+    </div>
+  </div>
+
+  <!-- 로딩 표시 -->
+  <div id="loading" class="loading" hidden>
+    <div class="spinner" aria-hidden="true"></div>
+    <div id="loadingText" class="loading-text">불러오는 중입니다</div>
+  </div>
+
+  <!-- 안내 문구 -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
