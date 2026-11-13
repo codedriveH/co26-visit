@@ -29,6 +29,8 @@
 5. 왼쪽 톱니바퀴(**프로젝트 설정**)를 눌러 **"appsscript.json" 매니페스트 파일을 편집기에 표시**를 체크합니다. 편집기로 돌아가 `appsscript.json`을 열고 이 저장소의 `apps-script/appsscript.json` 내용으로 바꿉니다.
 6. 디스크 모양의 **저장** 버튼을 누릅니다.
 
+> **더 쉬운 방법**: 파일 8개를 따로 만드는 대신 [`한번에-붙여넣기/Code.gs`](한번에-붙여넣기/Code.gs) 하나만 `Code.gs`에 통째로 붙여 넣어도 똑같이 동작합니다. 이 경우 3~4번은 건너뛰고, 5번(`appsscript.json`)과 6번(저장)만 하면 됩니다.
+
 <details>
 <summary>clasp로 올리는 방법 (개발자용)</summary>
 
