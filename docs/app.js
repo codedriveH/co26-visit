@@ -541,9 +541,12 @@
     }
     state.pending[slot.id] = true;
     render();
+    // 저장이 끝날 때까지 다른 버튼을 누르지 못하게 화면을 가립니다.
+    showLoading(on ? '신청하는 중입니다' : '취소하는 중입니다');
 
     api('toggle', { slotId: slot.id, want: on ? 'on' : 'off', extra: extra }).then(function (res) {
       delete state.pending[slot.id];
+      hideLoading();
       if (state.data !== data) return;
       slot.count = res.count;
       if (res.applied && !data.mine[slot.id]) data.mine[slot.id] = mineFromExtra(slot, extra, '신청');
@@ -552,6 +555,7 @@
       toast(res.applied ? '신청되었습니다.' : '신청을 취소했습니다.');
     }).catch(function (e) {
       delete state.pending[slot.id];
+      hideLoading();
       if (state.data === data) {
         // 실패하면 원래대로 되돌립니다.
         if (before) data.mine[slot.id] = before; else delete data.mine[slot.id];
@@ -570,13 +574,16 @@
     data.mine[slot.id] = mineFromExtra(slot, extra, before.status);
     state.pending[slot.id] = true;
     render();
+    showLoading('저장하는 중입니다');
 
     api('updateExtra', { slotId: slot.id, extra: extra }).then(function () {
       delete state.pending[slot.id];
+      hideLoading();
       render();
       toast('저장되었습니다.');
     }).catch(function (e) {
       delete state.pending[slot.id];
+      hideLoading();
       if (state.data === data) data.mine[slot.id] = before;
       handleFailure(e);
     });
