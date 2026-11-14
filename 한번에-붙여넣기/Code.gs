@@ -32,7 +32,7 @@ var TAB = {
 
 var HEAD = {
   ROSTER: ['이름', '전화번호해시', '성별'],
-  SCHEDULE: ['칸ID', '날짜', '요일', '항목', '팀', '시간', '장소', '필요인원', '열림여부'],
+  SCHEDULE: ['칸ID', '날짜', '요일', '항목', '팀', '시간', '장소', '필요인원', '열림여부', '추천성별'],
   APPLY: ['칸ID', '이름', '신청시각', '상태', '차량제공', '식사방식', '대접가능팀수', '메모'],
   PERSON: ['이름', '성별', '신청한 칸', '배정된 칸', '신청 수', '배정 수'],
   LOG: ['시각', '이름', '동작', '칸ID']
@@ -40,8 +40,7 @@ var HEAD = {
 
 var ST = { APPLY: '신청', ASSIGN: '배정', WAIT: '대기', CANCEL: '취소' };
 
-var ITEMS = ['오전봉사', '오후봉사', '저녁식사'];
-var TEAMS = ['A', 'B', '공통'];
+var ITEMS = ['오전봉사', '점심식사', '오후봉사', '저녁식사'];
 
 // 신청현황 / 추천결과 탭의 열 위치 (1부터 시작)
 var VIEW = {
@@ -180,10 +179,23 @@ function shortDate_(slot) {
   return base + (slot.dow ? '(' + slot.dow + ')' : '');
 }
 
+/** 팀 열의 표시 이름. A, B는 "A팀", 그 밖의 값(함께할 사람 이름 등)은 그대로 씁니다. */
+function teamLabel_(team) {
+  if (!team || team === '공통') return '공통';
+  return /^[A-Za-z]$/.test(team) ? team + '팀' : team;
+}
+
 function slotLabel_(slot) {
   var item = String(slot.item).replace('봉사', '').replace('식사', '');
   var team = slot.team && slot.team !== '공통' ? ' ' + slot.team : '';
-  return shortDate_(slot) + ' ' + item + team;
+  var time = isService_(slot) && slot.time ? ' ' + slot.time : '';
+  return shortDate_(slot) + ' ' + item + time + team;
+}
+
+/** '9:45', '13:45 ①' 같은 글자에서 분 단위 시각을 뽑습니다. 없으면 -1. */
+function timeMinutes_(text) {
+  var m = /(\d{1,2}):(\d{2})/.exec(String(text));
+  return m ? Number(m[1]) * 60 + Number(m[2]) : -1;
 }
 
 function isService_(slot) {
@@ -236,7 +248,9 @@ function loadSlots_() {
       time: String(d[i][5]).trim(),
       place: String(d[i][6]).trim(),
       need: Number(v[i][7]) || 0,
-      open: v[i][8] === true
+      open: v[i][8] === true,
+      prefer: String(d[i][9]).trim(),
+      order: i
     });
   }
   out.sort(compareSlots_);
@@ -249,10 +263,10 @@ function compareSlots_(a, b) {
   if (ia < 0) ia = 9;
   if (ib < 0) ib = 9;
   if (ia !== ib) return ia - ib;
+  var ma = timeMinutes_(a.time), mb = timeMinutes_(b.time);
+  if (ma !== mb) return ma - mb;
   if (a.time !== b.time) return a.time < b.time ? -1 : 1;
-  var ta = TEAMS.indexOf(a.team), tb = TEAMS.indexOf(b.team);
-  if (ta !== tb) return ta - tb;
-  return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+  return a.order - b.order;  // 같은 시간이면 일정 탭에 적은 순서
 }
 
 /** 신청 탭 전체. row는 시트의 실제 행 번호입니다. */
@@ -391,17 +405,20 @@ function setup() {
     '전화번호를 그대로 입력한 뒤 메뉴에서 "전화번호 해시 변환"을 누르면 암호화된 값으로 바뀝니다.');
 
   // 2. 일정
-  var sched = ensureSheet_(TAB.SCHEDULE, HEAD.SCHEDULE, [130, 110, 50, 90, 60, 80, 180, 80, 80]);
+  var sched = ensureSheet_(TAB.SCHEDULE, HEAD.SCHEDULE, [150, 110, 50, 90, 90, 90, 200, 80, 80, 80]);
   sched.getRange(2, 1, rows, 1).setNumberFormat('@');
   sched.getRange(2, 2, rows, 1).setNumberFormat('yyyy-mm-dd');
   sched.getRange(2, 4, rows, 1).setDataValidation(
     dv().requireValueInList(ITEMS, true).setAllowInvalid(true).build());
-  sched.getRange(2, 5, rows, 1).setDataValidation(
-    dv().requireValueInList(TEAMS, true).setAllowInvalid(false).build());
+  sched.getRange(2, 5, rows, 1).clearDataValidations();
+  sched.getRange(2, 10, rows, 1).setDataValidation(
+    dv().requireValueInList(['형제', '자매'], true).setAllowInvalid(false).build());
   sched.getRange(2, 6, rows, 1).setNumberFormat('@');
   sched.getRange(2, 9, rows, 1).setDataValidation(dv().requireCheckbox().build());
   sched.getRange(1, 3).setNote('비워 두면 날짜에서 자동으로 계산합니다.');
+  sched.getRange(1, 5).setNote('A, B 또는 함께할 사람의 이름을 적습니다. 모두 함께하는 칸은 "공통"이라고 적습니다.');
   sched.getRange(1, 9).setNote('체크한 칸만 전도인이 신청할 수 있습니다.');
+  sched.getRange(1, 10).setNote('적어 두면 자동 추천이 그 성별의 신청자만 추천합니다. 비워 두면 가리지 않습니다.');
 
   // 3. 신청 (모든 상태의 원본)
   var apply = ensureSheet_(TAB.APPLY, HEAD.APPLY, [130, 120, 150, 70, 80, 80, 100, 260]);
@@ -900,7 +917,7 @@ function buildView_(data, opts) {
     head[0] = '■';
     head[1] = shortDate_(slot);
     head[2] = slot.item;
-    head[3] = slot.team === '공통' ? '공통' : slot.team + '팀';
+    head[3] = teamLabel_(slot.team);
     head[4] = slot.time;
     head[5] = slot.place;
     head[6] = '필요 ' + slot.need + '명';
@@ -1178,9 +1195,10 @@ function markWaiting() {
  * 2. 신청자가 적은 칸부터 처리합니다.
  * 3. 지금까지 배정 수가 적은 사람을 우선합니다.
  * 4. 같으면 전체 신청 칸 수가 적은 사람, 그래도 같으면 무작위입니다.
- * 5. 봉사 칸에는 차량 제공자 1명, 자매 1명을 먼저 넣으려고 시도합니다.
+ * 5. 필요 인원이 2명 이상인 봉사 칸에는 차량 제공자 1명, 자매 1명을 먼저 넣으려고 시도합니다.
+ *    일정 탭에 "추천성별"을 적은 칸은 그 성별의 신청자만 추천합니다.
  * 6. 필요 인원이 차면 멈춥니다.
- * 추가: 같은 날 같은 항목(예: 오전봉사 A팀과 B팀)에 한 사람을 겹쳐 넣지 않습니다.
+ * 추가: 같은 날 같은 항목의 같은 시간에 한 사람을 겹쳐 넣지 않습니다.
  */
 
 /** 메뉴: 자동 추천 배정 (미리보기 생성). 신청 탭은 바꾸지 않습니다. */
@@ -1207,7 +1225,7 @@ function computeRecommendation_(data) {
   data.slots.forEach(function (s) { slotById[s.id] = s; });
 
   var bySlot = {}, totalApply = {}, assignCount = {}, busy = {};
-  function slotTimeKey(slot) { return slot.date + '|' + slot.item; }
+  function slotTimeKey(slot) { return slot.date + '|' + slot.item + '|' + slot.time; }
   function markBusy(name, slot) { busy[name + '|' + slotTimeKey(slot)] = slot.id; }
 
   data.apps.forEach(function (a) {
@@ -1239,6 +1257,7 @@ function computeRecommendation_(data) {
     });
 
     function available(c) {
+      if (slot.prefer && gender[c.app.name] !== slot.prefer) return false;
       var other = busy[c.app.name + '|' + slotTimeKey(slot)];
       return !other || other === slot.id;
     }
@@ -1263,7 +1282,7 @@ function computeRecommendation_(data) {
     }
 
     var picked = [];
-    if (isService_(slot)) {
+    if (isService_(slot) && slot.need >= 2 && !slot.prefer) {
       var hasCar = fixed.some(function (a) { return a.car; });
       if (!hasCar) pick(function (c) { return c.app.car; });
       var hasSister = fixed.concat(picked).some(function (a) { return gender[a.name] === '자매'; });
@@ -1355,11 +1374,11 @@ function insertTestData() {
     var days = [['2026-12-29', '1229'], ['2026-12-30', '1230'], ['2026-12-31', '1231'], ['2027-01-01', '0101']];
     var slots = [];
     days.forEach(function (d) {
-      slots.push([TEST_PREFIX + d[1] + '-AM-A', d[0], '', '오전봉사', 'A', '09:30', '왕국회관', 3, true]);
-      slots.push([TEST_PREFIX + d[1] + '-AM-B', d[0], '', '오전봉사', 'B', '09:30', '1구역 모임 장소', 3, true]);
-      slots.push([TEST_PREFIX + d[1] + '-PM-A', d[0], '', '오후봉사', 'A', '14:00', '왕국회관', 3, true]);
-      slots.push([TEST_PREFIX + d[1] + '-PM-B', d[0], '', '오후봉사', 'B', '14:00', '2구역 모임 장소', 3, true]);
-      slots.push([TEST_PREFIX + d[1] + '-DN', d[0], '', '저녁식사', '공통', '18:00', '', 1, true]);
+      slots.push([TEST_PREFIX + d[1] + '-AM-A', d[0], '', '오전봉사', 'A', '09:30', '왕국회관', 3, true, '']);
+      slots.push([TEST_PREFIX + d[1] + '-AM-B', d[0], '', '오전봉사', 'B', '09:30', '1구역 모임 장소', 3, true, '']);
+      slots.push([TEST_PREFIX + d[1] + '-PM-A', d[0], '', '오후봉사', 'A', '14:00', '왕국회관', 3, true, '']);
+      slots.push([TEST_PREFIX + d[1] + '-PM-B', d[0], '', '오후봉사', 'B', '14:00', '2구역 모임 장소', 3, true, '']);
+      slots.push([TEST_PREFIX + d[1] + '-DN', d[0], '', '저녁식사', '공통', '18:00', '', 1, true, '']);
     });
     appendRows_(sheet_(TAB.SCHEDULE), slots);
 

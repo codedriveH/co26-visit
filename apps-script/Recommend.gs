@@ -5,9 +5,10 @@
  * 2. 신청자가 적은 칸부터 처리합니다.
  * 3. 지금까지 배정 수가 적은 사람을 우선합니다.
  * 4. 같으면 전체 신청 칸 수가 적은 사람, 그래도 같으면 무작위입니다.
- * 5. 봉사 칸에는 차량 제공자 1명, 자매 1명을 먼저 넣으려고 시도합니다.
+ * 5. 필요 인원이 2명 이상인 봉사 칸에는 차량 제공자 1명, 자매 1명을 먼저 넣으려고 시도합니다.
+ *    일정 탭에 "추천성별"을 적은 칸은 그 성별의 신청자만 추천합니다.
  * 6. 필요 인원이 차면 멈춥니다.
- * 추가: 같은 날 같은 항목(예: 오전봉사 A팀과 B팀)에 한 사람을 겹쳐 넣지 않습니다.
+ * 추가: 같은 날 같은 항목의 같은 시간에 한 사람을 겹쳐 넣지 않습니다.
  */
 
 /** 메뉴: 자동 추천 배정 (미리보기 생성). 신청 탭은 바꾸지 않습니다. */
@@ -34,7 +35,7 @@ function computeRecommendation_(data) {
   data.slots.forEach(function (s) { slotById[s.id] = s; });
 
   var bySlot = {}, totalApply = {}, assignCount = {}, busy = {};
-  function slotTimeKey(slot) { return slot.date + '|' + slot.item; }
+  function slotTimeKey(slot) { return slot.date + '|' + slot.item + '|' + slot.time; }
   function markBusy(name, slot) { busy[name + '|' + slotTimeKey(slot)] = slot.id; }
 
   data.apps.forEach(function (a) {
@@ -66,6 +67,7 @@ function computeRecommendation_(data) {
     });
 
     function available(c) {
+      if (slot.prefer && gender[c.app.name] !== slot.prefer) return false;
       var other = busy[c.app.name + '|' + slotTimeKey(slot)];
       return !other || other === slot.id;
     }
@@ -90,7 +92,7 @@ function computeRecommendation_(data) {
     }
 
     var picked = [];
-    if (isService_(slot)) {
+    if (isService_(slot) && slot.need >= 2 && !slot.prefer) {
       var hasCar = fixed.some(function (a) { return a.car; });
       if (!hasCar) pick(function (c) { return c.app.car; });
       var hasSister = fixed.concat(picked).some(function (a) { return gender[a.name] === '자매'; });

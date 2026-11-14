@@ -135,7 +135,7 @@ function buildView_(data, opts) {
     head[0] = '■';
     head[1] = shortDate_(slot);
     head[2] = slot.item;
-    head[3] = slot.team === '공통' ? '공통' : slot.team + '팀';
+    head[3] = teamLabel_(slot.team);
     head[4] = slot.time;
     head[5] = slot.place;
     head[6] = '필요 ' + slot.need + '명';

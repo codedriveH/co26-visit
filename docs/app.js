@@ -4,9 +4,8 @@
 
   var API_URL = (window.APP_CONFIG && window.APP_CONFIG.API_URL) || '';
   var TOKEN_KEY = 'co_visit_token';
-  var ITEM_ORDER = ['오전봉사', '오후봉사', '저녁식사'];
-  var ITEM_NAME = { '오전봉사': '오전 봉사', '오후봉사': '오후 봉사', '저녁식사': '저녁 식사' };
-  var TEAM_ORDER = ['A', 'B', '공통'];
+  var ITEM_ORDER = ['오전봉사', '점심식사', '오후봉사', '저녁식사'];
+  var ITEM_NAME = { '오전봉사': '오전 봉사', '점심식사': '점심 식사', '오후봉사': '오후 봉사', '저녁식사': '저녁 식사' };
 
   var state = {
     token: '',
@@ -198,7 +197,11 @@
     return base + (slot.dow ? ' (' + slot.dow + ')' : '');
   }
   function itemText(slot) { return ITEM_NAME[slot.item] || slot.item; }
-  function teamText(slot) { return slot.team === '공통' ? '' : slot.team + '팀'; }
+  // A, B는 "A팀"으로, 그 밖의 값(함께할 사람 이름 등)은 그대로 보여 줍니다.
+  function teamText(slot) {
+    if (!slot.team || slot.team === '공통') return '';
+    return /^[A-Za-z]$/.test(slot.team) ? slot.team + '팀' : slot.team;
+  }
   function slotTitle(slot) {
     return dateText(slot) + ' ' + itemText(slot) + (teamText(slot) ? ' ' + teamText(slot) : '');
   }
@@ -289,21 +292,30 @@
 
       items.forEach(function (item) {
         var slots = list.filter(function (s) { return s.item === item; });
-        slots.sort(function (a, b) {
-          return TEAM_ORDER.indexOf(a.team) - TEAM_ORDER.indexOf(b.team) || (a.time < b.time ? -1 : 1);
-        });
         var block = el('div', 'item');
         block.appendChild(el('h3', 'item-title', ITEM_NAME[item] || item));
-        var grid = el('div', 'slots' + (slots.length > 1 ? ' slots-2' : ''));
-        slots.forEach(function (slot) { grid.appendChild(renderSlot(slot, readOnly)); });
-        block.appendChild(grid);
+
+        // 서버가 보낸 순서(시간, 일정 탭 순서)를 지키면서 같은 시간끼리 묶습니다.
+        var times = [], byTime = {};
+        slots.forEach(function (s) {
+          if (!byTime[s.time]) { byTime[s.time] = []; times.push(s.time); }
+          byTime[s.time].push(s);
+        });
+        times.forEach(function (time) {
+          var group = byTime[time];
+          var showTime = times.length > 1;
+          if (showTime && time) block.appendChild(el('div', 'time-title', time));
+          var grid = el('div', 'slots' + (group.length > 1 ? ' slots-2' : ''));
+          group.forEach(function (slot) { grid.appendChild(renderSlot(slot, readOnly, showTime)); });
+          block.appendChild(grid);
+        });
         card.appendChild(block);
       });
       days.appendChild(card);
     });
   }
 
-  function renderSlot(slot, readOnly) {
+  function renderSlot(slot, readOnly, hideTime) {
     var mine = state.data.mine[slot.id];
     var info = stateInfo(slot, mine);
     var disabled = readOnly || (!mine && !slot.open);
@@ -316,7 +328,8 @@
 
     var head = el('span', 'slot-head');
     if (teamText(slot)) head.appendChild(el('span', 'slot-team', teamText(slot)));
-    if (slotSub(slot)) head.appendChild(el('span', 'slot-info', slotSub(slot)));
+    var sub = hideTime ? slot.place : slotSub(slot);
+    if (sub) head.appendChild(el('span', 'slot-info', sub));
     btn.appendChild(head);
 
     var st = el('span', 'slot-state');

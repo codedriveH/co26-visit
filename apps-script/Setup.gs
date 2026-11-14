@@ -20,17 +20,20 @@ function setup() {
     '전화번호를 그대로 입력한 뒤 메뉴에서 "전화번호 해시 변환"을 누르면 암호화된 값으로 바뀝니다.');
 
   // 2. 일정
-  var sched = ensureSheet_(TAB.SCHEDULE, HEAD.SCHEDULE, [130, 110, 50, 90, 60, 80, 180, 80, 80]);
+  var sched = ensureSheet_(TAB.SCHEDULE, HEAD.SCHEDULE, [150, 110, 50, 90, 90, 90, 200, 80, 80, 80]);
   sched.getRange(2, 1, rows, 1).setNumberFormat('@');
   sched.getRange(2, 2, rows, 1).setNumberFormat('yyyy-mm-dd');
   sched.getRange(2, 4, rows, 1).setDataValidation(
     dv().requireValueInList(ITEMS, true).setAllowInvalid(true).build());
-  sched.getRange(2, 5, rows, 1).setDataValidation(
-    dv().requireValueInList(TEAMS, true).setAllowInvalid(false).build());
+  sched.getRange(2, 5, rows, 1).clearDataValidations();
+  sched.getRange(2, 10, rows, 1).setDataValidation(
+    dv().requireValueInList(['형제', '자매'], true).setAllowInvalid(false).build());
   sched.getRange(2, 6, rows, 1).setNumberFormat('@');
   sched.getRange(2, 9, rows, 1).setDataValidation(dv().requireCheckbox().build());
   sched.getRange(1, 3).setNote('비워 두면 날짜에서 자동으로 계산합니다.');
+  sched.getRange(1, 5).setNote('A, B 또는 함께할 사람의 이름을 적습니다. 모두 함께하는 칸은 "공통"이라고 적습니다.');
   sched.getRange(1, 9).setNote('체크한 칸만 전도인이 신청할 수 있습니다.');
+  sched.getRange(1, 10).setNote('적어 두면 자동 추천이 그 성별의 신청자만 추천합니다. 비워 두면 가리지 않습니다.');
 
   // 3. 신청 (모든 상태의 원본)
   var apply = ensureSheet_(TAB.APPLY, HEAD.APPLY, [130, 120, 150, 70, 80, 80, 100, 260]);

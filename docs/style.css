@@ -200,6 +200,16 @@ button:focus-visible, input:focus-visible {
 .item { margin-top: 14px; }
 .item-title { margin-bottom: 8px; font-size: 19px; }
 
+.time-title {
+  margin: 12px 0 6px;
+  padding-left: 10px;
+  border-left: 4px solid var(--primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+.item-title + .time-title { margin-top: 4px; }
+.slots + .time-title { margin-top: 16px; }
+
 .slots { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .slots-2 { grid-template-columns: 1fr 1fr; }
 @media (max-width: 339px) { .slots-2 { grid-template-columns: 1fr; } }

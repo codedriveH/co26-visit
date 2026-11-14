@@ -97,10 +97,23 @@ function shortDate_(slot) {
   return base + (slot.dow ? '(' + slot.dow + ')' : '');
 }
 
+/** 팀 열의 표시 이름. A, B는 "A팀", 그 밖의 값(함께할 사람 이름 등)은 그대로 씁니다. */
+function teamLabel_(team) {
+  if (!team || team === '공통') return '공통';
+  return /^[A-Za-z]$/.test(team) ? team + '팀' : team;
+}
+
 function slotLabel_(slot) {
   var item = String(slot.item).replace('봉사', '').replace('식사', '');
   var team = slot.team && slot.team !== '공통' ? ' ' + slot.team : '';
-  return shortDate_(slot) + ' ' + item + team;
+  var time = isService_(slot) && slot.time ? ' ' + slot.time : '';
+  return shortDate_(slot) + ' ' + item + time + team;
+}
+
+/** '9:45', '13:45 ①' 같은 글자에서 분 단위 시각을 뽑습니다. 없으면 -1. */
+function timeMinutes_(text) {
+  var m = /(\d{1,2}):(\d{2})/.exec(String(text));
+  return m ? Number(m[1]) * 60 + Number(m[2]) : -1;
 }
 
 function isService_(slot) {
@@ -153,7 +166,9 @@ function loadSlots_() {
       time: String(d[i][5]).trim(),
       place: String(d[i][6]).trim(),
       need: Number(v[i][7]) || 0,
-      open: v[i][8] === true
+      open: v[i][8] === true,
+      prefer: String(d[i][9]).trim(),
+      order: i
     });
   }
   out.sort(compareSlots_);
@@ -166,10 +181,10 @@ function compareSlots_(a, b) {
   if (ia < 0) ia = 9;
   if (ib < 0) ib = 9;
   if (ia !== ib) return ia - ib;
+  var ma = timeMinutes_(a.time), mb = timeMinutes_(b.time);
+  if (ma !== mb) return ma - mb;
   if (a.time !== b.time) return a.time < b.time ? -1 : 1;
-  var ta = TEAMS.indexOf(a.team), tb = TEAMS.indexOf(b.team);
-  if (ta !== tb) return ta - tb;
-  return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+  return a.order - b.order;  // 같은 시간이면 일정 탭에 적은 순서
 }
 
 /** 신청 탭 전체. row는 시트의 실제 행 번호입니다. */

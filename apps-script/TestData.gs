@@ -30,11 +30,11 @@ function insertTestData() {
     var days = [['2026-12-29', '1229'], ['2026-12-30', '1230'], ['2026-12-31', '1231'], ['2027-01-01', '0101']];
     var slots = [];
     days.forEach(function (d) {
-      slots.push([TEST_PREFIX + d[1] + '-AM-A', d[0], '', '오전봉사', 'A', '09:30', '왕국회관', 3, true]);
-      slots.push([TEST_PREFIX + d[1] + '-AM-B', d[0], '', '오전봉사', 'B', '09:30', '1구역 모임 장소', 3, true]);
-      slots.push([TEST_PREFIX + d[1] + '-PM-A', d[0], '', '오후봉사', 'A', '14:00', '왕국회관', 3, true]);
-      slots.push([TEST_PREFIX + d[1] + '-PM-B', d[0], '', '오후봉사', 'B', '14:00', '2구역 모임 장소', 3, true]);
-      slots.push([TEST_PREFIX + d[1] + '-DN', d[0], '', '저녁식사', '공통', '18:00', '', 1, true]);
+      slots.push([TEST_PREFIX + d[1] + '-AM-A', d[0], '', '오전봉사', 'A', '09:30', '왕국회관', 3, true, '']);
+      slots.push([TEST_PREFIX + d[1] + '-AM-B', d[0], '', '오전봉사', 'B', '09:30', '1구역 모임 장소', 3, true, '']);
+      slots.push([TEST_PREFIX + d[1] + '-PM-A', d[0], '', '오후봉사', 'A', '14:00', '왕국회관', 3, true, '']);
+      slots.push([TEST_PREFIX + d[1] + '-PM-B', d[0], '', '오후봉사', 'B', '14:00', '2구역 모임 장소', 3, true, '']);
+      slots.push([TEST_PREFIX + d[1] + '-DN', d[0], '', '저녁식사', '공통', '18:00', '', 1, true, '']);
     });
     appendRows_(sheet_(TAB.SCHEDULE), slots);
 
