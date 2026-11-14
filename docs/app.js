@@ -278,9 +278,10 @@
     });
     dateKeys.sort();
 
-    dateKeys.forEach(function (date) {
+    dateKeys.forEach(function (date, dayIndex) {
       var list = byDate[date];
-      var card = el('section', 'day');
+      // 날짜마다 다른 색으로 구분합니다. (6가지 색을 차례로 씁니다)
+      var card = el('section', 'day day-c' + (dayIndex % 6));
       card.appendChild(el('h2', 'day-title', dateText(list[0])));
 
       var items = [];
