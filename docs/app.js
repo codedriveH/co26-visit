@@ -434,7 +434,7 @@
     var mine = state.data.mine[slot.id];
     var extra = {
       car: mine ? !!mine.car : false,
-      meal: mine && mine.meal ? mine.meal : '집',
+      meal: mine && mine.meal ? mine.meal : '외식',
       teams: 2,
       memo: mine ? (mine.memo || '') : ''
     };
