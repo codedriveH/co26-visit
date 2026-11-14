@@ -17,7 +17,7 @@ function recommend() {
     var data = loadAll_();
     var proposed = computeRecommendation_(data);
     var title = '자동 추천 미리보기 (' + fmt_(new Date(), 'yyyy-MM-dd HH:mm') +
-      ' 생성) - 노란 줄이 새로 추천된 배정입니다. "추천 결과 반영" 메뉴를 눌러야 실제로 반영됩니다.';
+      ' 생성) - 살구색 굵은 줄이 새로 추천된 배정입니다. "추천 결과 반영" 메뉴를 눌러야 실제로 반영됩니다.';
     var view = buildView_(data, { title: title, proposed: proposed, reco: true });
     renderView_(sheet_(TAB.RECO), view, false);
     return Object.keys(proposed).length;

@@ -58,8 +58,8 @@ function onEditSync(e) {
     logMany_(logs);
 
     // 같은 사람의 "총 배정 수"와 블록 머리줄의 "현재 배정 수", 색을 바로 고칩니다.
-    var totalAssign = {}, slotAssign = {}, slotApply = {}, needOf = {};
-    data.slots.forEach(function (s) { needOf[s.id] = s.need; });
+    var totalAssign = {}, slotAssign = {}, slotApply = {}, needOf = {}, itemOf = {};
+    data.slots.forEach(function (s) { needOf[s.id] = s.need; itemOf[s.id] = s.item; });
     data.apps.forEach(function (a) {
       if (a.status === ST.CANCEL) return;
       slotApply[a.slotId] = (slotApply[a.slotId] || 0) + 1;
@@ -77,8 +77,8 @@ function onEditSync(e) {
       if (nm === VIEW.HEADER_MARK) {
         col.push(['배정 ' + (slotAssign[sid] || 0) + '명']);
         if (touchedSlots[sid]) {
-          sh.getRange(i, 1, 1, VIEW.WIDTH).setBackground(
-            headerColor_(slotApply[sid] || 0, needOf[sid] || 0, slotAssign[sid] || 0));
+          sh.getRange(i, 1, 1, VIEW.WIDTH).setBackgrounds(
+            [headerBg_(itemOf[sid], slotApply[sid] || 0, needOf[sid] || 0, slotAssign[sid] || 0)]);
         }
       } else if (sid && nm) {
         col.push([String(totalAssign[nm] || 0)]);

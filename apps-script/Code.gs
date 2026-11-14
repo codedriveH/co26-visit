@@ -47,11 +47,22 @@ var VIEW = {
 };
 
 var COLOR = {
-  HEAD_NORMAL: '#cfe2f3',
-  HEAD_SHORT: '#f9cb9c',   // 신청자가 필요 인원보다 적음
-  HEAD_FULL: '#b6d7a8',    // 배정이 필요 인원만큼 참
+  HEAD_NORMAL: '#cfe2f3',  // 항목 색이 정해지지 않은 칸의 머리줄
+  HEAD_SHORT: '#f6b26b',   // 신청자가 필요 인원보다 적음 (인원 칸에만 칠함)
+  HEAD_FULL: '#93c47d',    // 배정이 필요 인원만큼 참 (인원 칸에만 칠함)
   LABEL: '#eeeeee',
-  RECO: '#fff2cc'
+  RECO: '#fbd5b5',         // 추천결과 탭에서 새로 추천된 줄
+  DATE_BG: '#3c4043',      // 날짜 구분 줄
+  DATE_TEXT: '#ffffff',
+  TEXT: '#000000'
+};
+
+// 항목별 색: head는 블록 머리줄, tint는 그 아래 신청자 줄
+var ITEM_COLOR = {
+  '오전봉사': { head: '#9fc5e8', tint: '#eaf3fb' },
+  '점심식사': { head: '#ffe599', tint: '#fff9e3' },
+  '오후봉사': { head: '#b4a7d6', tint: '#f0ecf8' },
+  '저녁식사': { head: '#a2c4c9', tint: '#e8f2f3' }
 };
 
 function onOpen() {

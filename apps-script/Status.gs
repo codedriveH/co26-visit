@@ -56,10 +56,23 @@ function computeSig_(data) {
   })]));
 }
 
-function headerColor_(applied, need, assigned) {
-  if (need > 0 && assigned >= need) return COLOR.HEAD_FULL;
-  if (need > 0 && applied < need) return COLOR.HEAD_SHORT;
-  return COLOR.HEAD_NORMAL;
+function itemColor_(item) {
+  return ITEM_COLOR[item] || { head: COLOR.HEAD_NORMAL, tint: null };
+}
+
+/**
+ * 블록 머리줄의 배경색 한 줄.
+ * 줄 전체는 항목 색으로 칠하고, 필요/신청/배정 인원 칸만 상태 색으로 칠합니다.
+ *   주황: 신청자가 필요 인원보다 적음 / 초록: 배정이 필요 인원만큼 참
+ */
+function headerBg_(item, applied, need, assigned) {
+  var base = itemColor_(item).head;
+  var status = base;
+  if (need > 0 && assigned >= need) status = COLOR.HEAD_FULL;
+  else if (need > 0 && applied < need) status = COLOR.HEAD_SHORT;
+  var row = fillRow_(base);
+  row[6] = row[7] = row[8] = status;
+  return row;
 }
 
 function blankRow_() {
@@ -95,11 +108,12 @@ function buildView_(data, opts) {
     }
   });
 
-  var values = [], bgs = [], weights = [], checks = [];
-  function push(row, bg, weight, isCheck) {
+  var values = [], bgs = [], weights = [], fonts = [], checks = [];
+  function push(row, bg, weight, isCheck, fontColor) {
     values.push(row);
-    bgs.push(fillRow_(bg));
+    bgs.push(Array.isArray(bg) ? bg : fillRow_(bg));
     weights.push(fillRow_(weight));
+    fonts.push(fillRow_(fontColor || COLOR.TEXT));
     checks.push(isCheck);
   }
 
@@ -120,7 +134,16 @@ function buildView_(data, opts) {
   label[VIEW.TIME - 1] = '신청 시각';
   push(label, COLOR.LABEL, 'bold', false);
 
+  var lastDate = null;
   data.slots.forEach(function (slot) {
+    // 날짜가 바뀌면 진한 구분 줄을 넣습니다.
+    if (slot.date !== lastDate) {
+      lastDate = slot.date;
+      var dateRow = blankRow_();
+      dateRow[1] = shortDate_(slot);
+      push(dateRow, COLOR.DATE_BG, 'bold', false, COLOR.DATE_TEXT);
+    }
+    var tint = itemColor_(slot.item).tint;
     var list = (bySlot[slot.id] || []).slice().sort(function (a, b) {
       var ta = a.time instanceof Date ? a.time.getTime() : 0;
       var tb = b.time instanceof Date ? b.time.getTime() : 0;
@@ -143,12 +166,12 @@ function buildView_(data, opts) {
     head[8] = '배정 ' + assigned + '명';
     head[VIEW.KEY_SLOT - 1] = slot.id;
     head[VIEW.KEY_NAME - 1] = VIEW.HEADER_MARK;
-    push(head, headerColor_(list.length, slot.need, assigned), 'bold', false);
+    push(head, headerBg_(slot.item, list.length, slot.need, assigned), 'bold', false);
 
     if (!list.length) {
       var none = blankRow_();
       none[VIEW.NAME - 1] = '(신청자 없음)';
-      push(none, null, 'normal', false);
+      push(none, tint, 'normal', false, '#888888');
       return;
     }
 
@@ -171,11 +194,11 @@ function buildView_(data, opts) {
       row[VIEW.TIME - 1] = a.time instanceof Date ? fmt_(a.time, 'MM/dd HH:mm') : '';
       row[VIEW.KEY_SLOT - 1] = a.slotId;
       row[VIEW.KEY_NAME - 1] = a.name;
-      push(row, isProposed ? COLOR.RECO : null, 'normal', !opts.reco);
+      push(row, isProposed ? COLOR.RECO : tint, isProposed ? 'bold' : 'normal', !opts.reco);
     });
   });
 
-  return { values: values, bgs: bgs, weights: weights, checks: checks };
+  return { values: values, bgs: bgs, weights: weights, fonts: fonts, checks: checks };
 }
 
 /** 만들어 둔 표를 시트에 그립니다. withCheckbox가 true이면 배정 열에 체크박스를 넣습니다. */
@@ -195,6 +218,7 @@ function renderView_(sh, view, withCheckbox) {
   range.setValues(view.values);
   range.setBackgrounds(view.bgs);
   range.setFontWeights(view.weights);
+  range.setFontColors(view.fonts);
   range.setVerticalAlignment('middle');
   sh.getRange(1, 1, n, 1).setHorizontalAlignment('center');
   sh.getRange(1, VIEW.GENDER, n, 4).setHorizontalAlignment('center');
