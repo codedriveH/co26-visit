@@ -14,6 +14,17 @@
 </head>
 <body>
 
+  <!-- 카카오톡 안에서 열었을 때: 휴대폰의 기본 브라우저로 넘깁니다 -->
+  <main id="kakaoView" class="view" hidden>
+    <div class="login-box">
+      <h1 class="login-title">순회 방문 신청</h1>
+      <p class="login-lead">휴대폰의 기본 인터넷 앱으로 여는 중입니다.</p>
+      <button id="openExternalBtn" type="button" class="btn btn-primary btn-big">인터넷 앱으로 열기</button>
+      <p class="login-help">열리지 않으면 위 버튼을 눌러 주세요. 그래도 안 되면 화면 구석의 ⋮ 또는 공유 버튼을 눌러 "다른 브라우저로 열기"를 고르시면 됩니다.</p>
+      <button id="stayBtn" type="button" class="btn btn-plain kakao-stay">카카오톡 안에서 그냥 계속하기</button>
+    </div>
+  </main>
+
   <!-- 로그인 화면 -->
   <main id="loginView" class="view" hidden>
     <div class="login-box">
@@ -22,7 +33,7 @@
       <form id="loginForm" novalidate>
         <label class="field">
           <span class="field-label">이름</span>
-          <input id="nameInput" type="text" autocomplete="name" maxlength="30" placeholder="예: 홍길동">
+          <input id="nameInput" type="text" autocomplete="name" maxlength="30" placeholder="예: 김하율">
         </label>
         <label class="field">
           <span class="field-label">휴대폰 번호</span>

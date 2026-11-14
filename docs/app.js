@@ -76,6 +76,7 @@
   }
 
   function showView(name) {
+    $('kakaoView').hidden = name !== 'kakao';
     $('loginView').hidden = name !== 'login';
     $('mainView').hidden = name !== 'main';
   }
@@ -602,7 +603,31 @@
     openSheet(slot);
   }
 
+  /* ---------- 카카오톡 안에서 열었을 때 ---------- */
+
+  function isKakaoInApp() {
+    return /KAKAOTALK/i.test(navigator.userAgent || '');
+  }
+
+  /** 카카오톡에 "이 주소를 휴대폰의 기본 브라우저로 열어 달라"고 요청합니다. */
+  function openExternal() {
+    window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(window.location.href);
+  }
+
   /* ---------- 시작 ---------- */
+
+  function start() {
+    state.token = loadToken();
+    if (state.token && API_URL) {
+      loadData(true);
+    } else {
+      showLogin('');
+      if (!API_URL) {
+        $('loginError').textContent = '아직 준비 중입니다. 잠시 후 다시 접속해 주세요.';
+        $('loginError').hidden = false;
+      }
+    }
+  }
 
   function init() {
     $('loginForm').addEventListener('submit', onLoginSubmit);
@@ -625,16 +650,16 @@
       }
     });
 
-    state.token = loadToken();
-    if (state.token && API_URL) {
-      loadData(true);
-    } else {
-      showLogin('');
-      if (!API_URL) {
-        $('loginError').textContent = '아직 준비 중입니다. 잠시 후 다시 접속해 주세요.';
-        $('loginError').hidden = false;
-      }
+    $('openExternalBtn').addEventListener('click', openExternal);
+    $('stayBtn').addEventListener('click', start);
+
+    if (isKakaoInApp()) {
+      // 카카오톡 안에서는 안내 화면을 보여 주고 기본 브라우저로 넘깁니다.
+      showView('kakao');
+      openExternal();
+      return;
     }
+    start();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

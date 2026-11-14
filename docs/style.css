@@ -115,6 +115,7 @@ button:focus-visible {
 }
 .login-lead { margin-top: 10px; margin-bottom: 32px; color: var(--muted); }
 .login-help { margin-top: 18px; color: var(--muted); font-size: 17px; }
+.kakao-stay { margin-top: 28px; }
 
 .field { display: block; margin-bottom: 18px; }
 .field-label { display: block; margin-bottom: 6px; font-weight: 500; color: var(--ink); }
