@@ -452,7 +452,7 @@
     }
     if (isDinner(slot)) {
       body.appendChild(choiceGroup('식사는 어디에서 하시나요?',
-        [{ text: '집에서', value: '집' }, { text: '외식', value: '외식' }],
+        [{ text: '외식', value: '외식' }, { text: '집에서', value: '집' }],
         extra.meal, function (v) { extra.meal = v; }));
       // 식사는 항상 두 팀을 함께 대접하므로 팀 수는 묻지 않습니다.
     }
