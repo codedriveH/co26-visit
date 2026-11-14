@@ -217,7 +217,6 @@
     if (isService(slot) && mine.car) parts.push('차량 제공');
     if (isDinner(slot)) {
       if (mine.meal) parts.push(mine.meal === '집' ? '집에서' : '외식');
-      if (mine.teams) parts.push(mine.teams + '팀 대접');
     }
     return parts.join(' · ');
   }
@@ -436,7 +435,7 @@
     var extra = {
       car: mine ? !!mine.car : false,
       meal: mine && mine.meal ? mine.meal : '집',
-      teams: mine && mine.teams ? Number(mine.teams) : 1,
+      teams: 2,
       memo: mine ? (mine.memo || '') : ''
     };
     sheetState = { slot: slot, extra: extra };
@@ -455,12 +454,7 @@
       body.appendChild(choiceGroup('식사는 어디에서 하시나요?',
         [{ text: '집에서', value: '집' }, { text: '외식', value: '외식' }],
         extra.meal, function (v) { extra.meal = v; }));
-      if (slot.team === '공통') {
-        body.appendChild(choiceGroup('몇 팀을 대접하실 수 있나요?',
-          [{ text: '1팀', value: 1 }, { text: '2팀 모두', value: 2 }],
-          extra.teams, function (v) { extra.teams = v; },
-          '이번에는 순회 감독자 부부 두 팀이 방문합니다.'));
-      }
+      // 식사는 항상 두 팀을 함께 대접하므로 팀 수는 묻지 않습니다.
     }
 
     var memoWrap = el('label', 'field');
