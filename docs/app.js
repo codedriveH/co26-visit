@@ -206,9 +206,19 @@
   function slotTitle(slot) {
     return dateText(slot) + ' ' + itemText(slot) + (teamText(slot) ? ' ' + teamText(slot) : '');
   }
+  /** '13:45' → '오후 1:45', '9:45' → '오전 9:45'. 시각이 아니면 그대로 둡니다. */
+  function timeText(time) {
+    var m = /^\s*(\d{1,2}):(\d{2})(.*)$/.exec(time || '');
+    if (!m) return time || '';
+    var h = Number(m[1]);
+    if (h > 23) return time;
+    var h12 = h % 12 === 0 ? 12 : h % 12;
+    return (h < 12 ? '오전 ' : '오후 ') + h12 + ':' + m[2] + m[3];
+  }
+
   function slotSub(slot) {
     var parts = [];
-    if (slot.time) parts.push(slot.time);
+    if (slot.time) parts.push(timeText(slot.time));
     if (slot.place) parts.push(slot.place);
     return parts.join(' · ');
   }
@@ -305,7 +315,7 @@
         times.forEach(function (time) {
           var group = byTime[time];
           var showTime = times.length > 1;
-          if (showTime && time) block.appendChild(el('div', 'time-title', time));
+          if (showTime && time) block.appendChild(el('div', 'time-title', timeText(time)));
           var grid = el('div', 'slots' + (group.length > 1 ? ' slots-2' : ''));
           group.forEach(function (slot) { grid.appendChild(renderSlot(slot, readOnly, showTime)); });
           block.appendChild(grid);
@@ -345,7 +355,6 @@
     btn.appendChild(st);
 
     if (mine && extraText(slot, mine)) btn.appendChild(el('span', 'slot-extra', extraText(slot, mine)));
-    btn.appendChild(el('span', 'slot-count', '신청 ' + slot.count + '명'));
     return btn;
   }
 
